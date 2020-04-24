@@ -8,40 +8,40 @@ import play.api.test.Helpers.{OK, status}
 import play.api.test.Helpers._
 
 @RunWith(classOf[JUnitRunner])
-class TermCategoryControllerSpec extends BaseSpec {
+class FrameworkTermControllerSpec extends BaseSpec {
 
     "Term Category Controller " should {
         "return success response for create API" in {
-            val controller = app.injector.instanceOf[controllers.v3.TermCategoryController]
-            val result = controller.create("grade level")(FakeRequest())
+            val controller = app.injector.instanceOf[controllers.v3.FrameworkTermController]
+            val result = controller.create("d0_123","grade level")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
         
         "return success response for read API" in {
-            val controller = app.injector.instanceOf[controllers.v3.TermCategoryController]
+            val controller = app.injector.instanceOf[controllers.v3.FrameworkTermController]
             val result = controller.read("d0_123","grade level")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for update API" in {
-            val controller = app.injector.instanceOf[controllers.v3.TermCategoryController]
-            val result = controller.update("d0_123","grade level")(FakeRequest())
+            val controller = app.injector.instanceOf[controllers.v3.FrameworkTermController]
+            val result = controller.update("maths","d0_123","grade level")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
         
         "return success response for search API" in {
-            val controller = app.injector.instanceOf[controllers.v3.TermCategoryController]
+            val controller = app.injector.instanceOf[controllers.v3.FrameworkTermController]
             val result = controller.search("grade level")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }
 
         "return success response for retire API" in {
-            val controller = app.injector.instanceOf[controllers.v3.TermCategoryController]
-            val result = controller.retire("d0_123","grade level")(FakeRequest())
+            val controller = app.injector.instanceOf[controllers.v3.FrameworkTermController]
+            val result = controller.retire("maths","d0_123","grade level")(FakeRequest())
             isOK(result)
             status(result) must equalTo(OK)
         }

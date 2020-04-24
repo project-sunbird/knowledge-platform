@@ -20,11 +20,11 @@ POST      /framework/v3/category/search                   controllers.v3.Framewo
 DELETE    /framework/v3/category/retire/:identifier       controllers.v3.FrameworkCategoryController.retire(identifier:String, framework:String)
 
 # Term API's
-POST      /framework/v3/category/term/create               controllers.v3.TermCategoryController.create(category:String)  
-GET       /framework/v3/category/term/read/:identifier     controllers.v3.TermCategoryController.read(identifier:String, category:String)
-PATCH     /framework/v3/category/term/update/:identifier   controllers.v3.TermCategoryController.update(identifier:String, category:String)
-POST      /framework/v3/category/term/search               controllers.v3.TermCategoryController.search(category:String)
-DELETE    /framework/v3/category/term/retire/:identifier   controllers.v3.TermCategoryController.retire(identifier:String, category:String)
+POST      /framework/v3/term/create               controllers.v3.FrameworkTermController.create(framework:String, category:String)  
+GET       /framework/v3/term/read/:identifier     controllers.v3.FrameworkTermController.read(identifier:String, category:String)
+PATCH     /framework/v3/term/update/:identifier   controllers.v3.FrameworkTermController.update(identifier:String, framework:String, category:String)
+POST      /framework/v3/term/search               controllers.v3.FrameworkTermController.search(category:String)
+DELETE    /framework/v3/term/retire/:identifier   controllers.v3.FrameworkTermController.retire(identifier: String, framework:String, category:String)
 
 
 	

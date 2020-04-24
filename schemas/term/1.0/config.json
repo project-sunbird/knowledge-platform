@@ -1,4 +1,7 @@
 {
+  "restrictProps": {
+    "update": ["code"]
+  },
   "objectType": "Term",
   "relations": {
     "children": {
@@ -19,14 +22,7 @@
       "type": "hasSequenceMember",
       "direction": "in",
       "objects": [
-        "Category"
-      ]
-    },
-    "categories": {
-      "type": "hasSequenceMember",
-      "direction": "in",
-      "objects": [
-        "CategoryInstance"
+        "Category", "CategoryInstance"
       ]
     },
     "contents": {
@@ -50,5 +46,6 @@
         "Term"
       ]
     }
-  }
+  },
+  "frameworkCategories":[]
 }

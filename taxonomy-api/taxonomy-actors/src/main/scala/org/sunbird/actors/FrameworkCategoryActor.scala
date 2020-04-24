@@ -174,7 +174,7 @@ class FrameworkCategoryActor @Inject() (implicit oec: OntologyEngineContext) ext
       relationMap.put("index", request.get("index"))
     }
     relationList.add(relationMap)
-    request.put("frameworks", relationList)
+    request.put("CategoryInstance", relationList)
   }
 
   def validateScopeNode(categoryId:String, request: Request): Future[Boolean] = {

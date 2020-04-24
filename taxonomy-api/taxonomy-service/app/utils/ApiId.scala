@@ -12,5 +12,7 @@ object ApiId {
 	final val  RETIRE_FRAMEWORK_CATEGORY = "api.framework.category.retire"
 	final val CREATE_FRAMEWORK_CATEGORY = "api.framework.category.create"
 	final val READ_FRAMEWORK_CATEGORY = "api.framework.category.read"
-	
+	final val CREATE_FRAMEWORK_TERM = "api.framework.term.create"
+	final val RETIRE_FRAMEWORK_TERM = "api.framework.term.retire"
+	final val UPDATE_FRAMEWORK_TERM = "api.framework.term.update"
 }

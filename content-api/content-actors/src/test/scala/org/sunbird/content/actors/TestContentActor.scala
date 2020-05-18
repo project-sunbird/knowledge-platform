@@ -4,10 +4,11 @@ import java.util
 
 import org.sunbird.graph.dac.model.Node
 import akka.actor.Props
+import com.mashape.unirest.http.Unirest
 import org.scalamock.scalatest.MockFactory
 import org.sunbird.cloudstore.StorageService
-import org.sunbird.common.JsonUtils
-import org.sunbird.common.dto.Request
+import org.sunbird.common.{HttpUtil, JsonUtils}
+import org.sunbird.common.dto.{Request, Response}
 import org.sunbird.common.exception.ResponseCode
 import org.sunbird.graph.{GraphService, OntologyEngineContext}
 
@@ -27,7 +28,7 @@ class TestContentActor extends BaseSpec with MockFactory {
         implicit val ss = mock[StorageService]
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val request = getContentRequest()
-        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType"-> "application/pdf", "contentType" -> "Resource"))
+        val content = mapAsJavaMap(Map("name" -> "New Content", "code" -> "1234", "mimeType" -> "application/pdf", "contentType" -> "Resource"))
         request.put("content", content)
         assert(true)
         val response = callActor(request, Props(new ContentActor()))
@@ -93,6 +94,25 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
     }
 
+    it should "reserve dialcodes for textbook node" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        val httpUtil = mock[HttpUtil]
+        (oec.graphService _).expects().returns(graphDB).repeated(2)
+        (oec.httpUtil _).expects().returns(httpUtil)
+        (httpUtil.post(_: String, _: util.HashMap[String, AnyRef], _: util.HashMap[String, String])).expects(*, *, *).returns(getDialcodeGenerateResponse())
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(getValidNodeForReserveDialcodes()))
+        (graphDB.updateNodes(_: String, _: util.List[String], _: util.Map[String,AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]()))
+        implicit val ss = mock[StorageService]
+        val request = getContentRequest()
+        request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_12346", "count" -> 2.asInstanceOf[AnyRef], "publisher" -> "publisher1")))
+        request.setOperation("reserveDialcode")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.OK)
+        assert(response.get("identifier") == "do_12346")
+    }
+
+
     private def getContentRequest(): Request = {
         val request = new Request()
         request.setContext(new util.HashMap[String, AnyRef]() {
@@ -101,6 +121,7 @@ class TestContentActor extends BaseSpec with MockFactory {
                 put("version", "1.0")
                 put("objectType", "Content")
                 put("schemaName", "content")
+                put("channel", "in.ekstep")
 
             }
         })
@@ -149,11 +170,55 @@ class TestContentActor extends BaseSpec with MockFactory {
         (graphDB.updateNodes(_: String, _: util.List[String], _: util.HashMap[String, AnyRef])).expects(*, *, *).returns(Future(new util.HashMap[String, Node]))
         implicit val ss = mock[StorageService]
         val request = getContentRequest()
-        request.getContext.put("identifier","do1234")
+        request.getContext.put("identifier", "do1234")
         request.getRequest.putAll(mapAsJavaMap(Map("identifier" -> "do_1234")))
         request.setOperation("retireContent")
         val response = callActor(request, Props(new ContentActor()))
         assert("successful".equals(response.getParams.getStatus))
+    }
+
+    private def getValidNodeForReserveDialcodes(): Node = {
+        val node = new Node()
+        node.setIdentifier("do_12346")
+        node.setNodeType("DATA_NODE")
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", "do_12346")
+                put("mimeType", "application/vnd.ekstep.content-collection")
+                put("status", "Draft")
+                put("contentType", "TextBook")
+                put("name", "Node For reserving dialcodes")
+                put("channel", "in.ekstep")
+            }
+        })
+        node
+    }
+
+    private def getDialcodeGenerateResponse(): Response = {
+        val responseString:String  = 	"{\n"+
+            "    \"id\": \"sunbird.dialcode.generate\",\n"+
+            "    \"ver\": \"3.0\",\n"+
+            "    \"ts\": \"2020-04-17T09:57:20ZZ\",\n"+
+            "    \"params\": {\n"+
+            "        \"resmsgid\": \"1e4b5fe2-bd0c-423f-a436-26fee3e98d69\",\n"+
+            "        \"msgid\": null,\n"+
+            "        \"err\": null,\n"+
+            "        \"status\": \"successful\",\n"+
+            "        \"errmsg\": null\n"+
+            "    },\n"+
+            "    \"responseCode\": \"OK\",\n"+
+            "    \"result\": {\n"+
+            "        \"dialcodes\": [\n"+
+            "            \"D9F2B7\",\n"+
+            "            \"G8K9H6\"\n"+
+            "        ],\n"+
+            "        \"count\": 2,\n"+
+            "        \"batchcode\": \"publisher1.20200417T095720\",\n"+
+            "        \"publisher\": \"publisher1\"\n"+
+            "    }\n"+
+            "}"
+
+        JsonUtils.deserialize(responseString, classOf[Response])
     }
 
 }

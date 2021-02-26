@@ -1,0 +1,558 @@
+{
+	"info": {
+		"_postman_id": "24dfc21f-8f81-476d-af5c-8b53bf5dbf6c",
+		"name": "Content - Scenarios",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Custom Scenarios",
+			"item": [
+				{
+					"name": "Content - Full Lifecycle",
+					"item": [
+						{
+							"name": "Content - Create",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f08ff07f-9639-47a8-94b2-6bdbd9c78990",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"let jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"identifier\", jsonData.result.identifier);",
+											"pm.collectionVariables.set(\"versionKey\", jsonData.result.versionKey);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "amit"
+									},
+									{
+										"key": "X-Channel-Id",
+										"value": "channel-1"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\"request\": {\n   \"content\": {\n       \"name\": \"{{$randomCompanyName}}\",\n       \"code\": \"ft:code:{{$randomUUID}}\",\n       \"mimeType\": \"application/pdf\",\n       \"contentType\":\"Resource\",\n       \"license\":\"CC BY 4.0\"\n   }\n }\n}",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "{{content_host}}/content/v3/create",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Content - Update",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "f317660f-e4e1-4723-84fe-4f448b7c79e9",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "ft-user"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"request\": {\n    \"content\": {\n      \"versionKey\": \"{{versionKey}}\",\n      \"description\": \"Description of the content.\"\n    }\n  }\n}"
+								},
+								"url": {
+									"raw": "{{content_host}}/content/v3/update/{{identifier}}",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"update",
+										"{{identifier}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Content - Read",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "07928562-b6bc-404c-a01a-4f7ba2ac384b",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Your test name\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.result.content.mimeType).to.eql(\"application/pdf\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "ft-user"
+									}
+								],
+								"url": {
+									"raw": "{{content_host}}/content/v3/read/{{identifier}}",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"read",
+										"{{identifier}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Content - Sync - Neo4J to ES",
+					"item": [
+						{
+							"name": "Content - Create",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "24cc9728-3234-48dc-875b-f8b6bbf92aa6",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"let jsonData = pm.response.json();",
+											"pm.collectionVariables.set(\"identifier\", jsonData.result.identifier);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "mahesh"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{api_key}}"
+									},
+									{
+										"key": "X-Authenticated-User-Token",
+										"value": "{{user_token}}",
+										"type": "text"
+									},
+									{
+										"key": "X-Channel-ID",
+										"value": "in.sunbird",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"{{$randomCompanyName}}\",\n            \"code\": \"ft:content:{{$randomUUID}}\",\n            \"mimeType\": \"application/pdf\",\n            \"contentType\": \"Resource\"\n        }\n    }\n}",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "{{content_host}}/content/v3/create",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								},
+								"description": "Content Create API Request with empty request body."
+							},
+							"response": []
+						},
+						{
+							"name": "Content - Search",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ec93ea2a-e28f-42f1-9966-27ab35f85c8f",
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"pm.test(\"Content search result count is 1\", function () {",
+											"    var jsonData = pm.response.json();",
+											"    pm.expect(jsonData.result.count).to.eql(1);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "4d975fc0-3cab-416c-851d-3b1c96daf6d1",
+										"exec": [
+											"setTimeout(function(){}, 2000);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "ilimi"
+									},
+									{
+										"key": "Accept-Encoding",
+										"value": "application/gzip"
+									},
+									{
+										"key": "Accept-Charset",
+										"value": "UTF-8"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"filters\": {\n            \"identifier\": \"{{identifier}}\",\n            \"objectType\": \"Content\",\n            \"status\": []\n        },\n        \"fields\": [\"name\", \"code\", \"description\"]\n    }\n}"
+								},
+								"url": {
+									"raw": "{{search_host}}/v3/search",
+									"host": [
+										"{{search_host}}"
+									],
+									"path": [
+										"v3",
+										"search"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Content - H5P - Lifecycle",
+					"item": [],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Create",
+			"item": [
+				{
+					"name": "Invalid Requests",
+					"item": [
+						{
+							"name": "Create - Empty Request",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"id": "03c236c9-08da-408f-83d6-3d99993209b4"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "mahesh"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{api_key}}"
+									},
+									{
+										"key": "X-Authenticated-User-Token",
+										"value": "{{user_token}}",
+										"type": "text"
+									},
+									{
+										"key": "X-Channel-ID",
+										"value": "in.sunbird",
+										"type": "text"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {}\n    }\n}",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "{{content_host}}/content/v3/create",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								},
+								"description": "Content Create API Request with empty request body."
+							},
+							"response": []
+						},
+						{
+							"name": "Create - Only Name",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"type": "text/javascript",
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"id": "bd8b6dd1-781d-444e-a45c-24f2826b8b93"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "mahesh"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{api_key}}"
+									},
+									{
+										"key": "X-Authenticated-User-Token",
+										"type": "text",
+										"value": "{{user_token}}"
+									},
+									{
+										"key": "X-Channel-ID",
+										"type": "text",
+										"value": "in.sunbird"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"Testing only with name\"\n        }\n    }\n}",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "{{content_host}}/content/v3/create",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								},
+								"description": "Content Create API Request with only \"name\" property."
+							},
+							"response": []
+						},
+						{
+							"name": "Create - Only Name Duplicate",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "4873de15-8e7e-4b31-990b-4fc8673a27c9",
+										"exec": [
+											"pm.test(\"Status code is 400\", function () {",
+											"    pm.response.to.have.status(400);",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "user-id",
+										"value": "mahesh"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{api_key}}"
+									},
+									{
+										"key": "X-Authenticated-User-Token",
+										"type": "text",
+										"value": "{{user_token}}"
+									},
+									{
+										"key": "X-Channel-ID",
+										"type": "text",
+										"value": "in.sunbird"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"request\": {\n        \"content\": {\n            \"name\": \"{{$randomBankAccountName}}\"\n        }\n    }\n}",
+									"options": {
+										"raw": {}
+									}
+								},
+								"url": {
+									"raw": "{{content_host}}/content/v3/create",
+									"host": [
+										"{{content_host}}"
+									],
+									"path": [
+										"content",
+										"v3",
+										"create"
+									]
+								},
+								"description": "Content Create API Request with only \"name\" property."
+							},
+							"response": []
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "c7260520-b384-415d-bf30-a88c71cbe8a2",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "a4b4049d-610e-43f9-9d1d-a2e185e39471",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"id": "96cf4170-8ec3-4811-98de-0e06c6027d73",
+			"key": "identifier",
+			"value": ""
+		},
+		{
+			"id": "49e8c8cd-9231-4a91-8574-56fb807e2345",
+			"key": "versionKey",
+			"value": ""
+		}
+	],
+	"protocolProfileBehavior": {}
+}

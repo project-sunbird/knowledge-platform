@@ -1,0 +1,19 @@
+{
+	"id": "functional-tests-env",
+	"name": "Functional Test - Environment",
+	"values": [
+		{
+			"key": "content_host",
+			"value": "http://11.2.6.6/content",
+			"enabled": true
+		},
+		{
+			"key": "search_host",
+			"value": "http://11.2.6.6/search",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2020-08-11T17:55:03.245Z",
+	"_postman_exported_using": "Postman/7.29.1"
+}

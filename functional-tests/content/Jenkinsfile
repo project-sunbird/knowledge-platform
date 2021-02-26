@@ -25,12 +25,13 @@ node('build-slave') {
 
             stage('Run functional testcases') {
                 sh '''
-                echo "Running content service Functional testcases"
+                echo "Running Content Service Functional Tests"
+                docker run -v $WORKSPACE:/etc/newman -t postman/newman run "functional-tests/content/scenarios/content_api.json" --environment="functional-tests/content/env/config.json" --reporters="cli"
                 '''
 
             }
           }
-        }    
+        }
     }
     catch (err) {
         currentBuild.result = "FAILURE"

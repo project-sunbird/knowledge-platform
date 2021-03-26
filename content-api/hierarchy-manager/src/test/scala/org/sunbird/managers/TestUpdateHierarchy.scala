@@ -177,6 +177,32 @@ class TestUpdateHierarchy extends BaseSpec {
         exception.getMessage shouldEqual "Please Provide Valid Root Node Identifier"
     }
 
+    "updateHierarchy on already existing hierarchy empty hierarcy request" should "recompose the hierarchy structure with existing hierarchy" in {
+        UpdateHierarchyManager.getContentNode("do_31250856200414822416938", HierarchyConstants.TAXONOMY_ID).map(node => {
+            println("Node data from neo4j ----- id: " + node.getIdentifier + "node type:  " + node.getNodeType + " node metadata : " + node.getMetadata)
+            val request = new Request()
+            val context = getContext()
+            context.put(HierarchyConstants.SCHEMA_NAME, "collection")
+            request.setContext(context)
+            request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_1())
+            request.put(HierarchyConstants.HIERARCHY, getHierarchy_1())
+            UpdateHierarchyManager.updateHierarchy(request).map(response => {
+                assert(response.getResponseCode.code() == 200)
+                val hierarchy = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+                    .one().getString(HierarchyConstants.HIERARCHY)
+                assert(StringUtils.isNotEmpty(hierarchy))
+                request.put(HierarchyConstants.NODES_MODIFIED, getNodesModified_TOC_UPLOAD_STYLE())
+                request.put(HierarchyConstants.HIERARCHY, getHierarchy_Null())
+                UpdateHierarchyManager.updateHierarchy(request).map(resp => {
+                    assert(response.getResponseCode.code() == 200)
+                    val hierarchy_updated = readFromCassandra("Select hierarchy from hierarchy_store.content_hierarchy where identifier='do_11294581887465881611'")
+                        .one().getString(HierarchyConstants.HIERARCHY)
+                    assert(StringUtils.isNotEmpty(hierarchy_updated))
+                })
+            }).flatMap(f => f)
+        }).flatMap(f => f)
+    }
+
     "updateHierarchy test proper ordering" should "succeed with proper hierarchy structure" in {
         val nodesModified = "{\"do_113031517435822080121\":{\"metadata\":{\"license\":\"CC BY 4.0\"},\"root\":true,\"isNew\":false},\"u1\":{\"metadata\":{\"name\":\"U1\",\"dialcodeRequired\":\"No\",\"mimeType\":\"application/vnd.ekstep.content-collection\",\"contentType\":\"CourseUnit\",\"primaryCategory\": \"Course Unit\",\"license\":\"CC BY 4.0\"},\"root\":false,\"isNew\":true},\"u2\":{\"metadata\":{\"name\":\"U2\",\"dialcodeRequired\":\"No\",\"mimeType\":\"application/vnd.ekstep.content-collection\",\"contentType\":\"CourseUnit\",\"primaryCategory\": \"Course Unit\",\"license\":\"CC BY 4.0\"},\"root\":false,\"isNew\":true}}";
         val hierarchy = "{\"do_113031517435822080121\":{\"children\":[\"u1\",\"u2\"],\"root\":true,\"name\":\"Untitled Textbook\",\"contentType\":\"Course\",\"primaryCategory\": \"Learning Resource\"},\"u1\":{\"children\":[\"do_11303151546543308811\",\"do_11303151571010355212\",\"do_11303151584773734413\",\"do_11303151594263347214\",\"do_11303151604402585615\",\"do_11303151612719104016\",\"do_11303151623148339217\",\"do_11303151631740928018\",\"do_11303151638961356819\",\"do_113031516469411840110\"],\"root\":false,\"name\":\"U1\",\"contentType\":\"CourseUnit\",\"primaryCategory\": \"Learning Resource\"},\"u2\":{\"children\":[\"do_113031516541870080111\",\"do_113031516616491008112\",\"do_113031516693184512113\",\"do_113031516791406592114\",\"do_113031516862660608115\",\"do_113031516945334272116\",\"do_113031517024190464117\",\"do_113031517104939008118\",\"do_113031517200171008119\",\"do_113031517276520448120\"],\"root\":false,\"name\":\"U2\",\"contentType\":\"CourseUnit\",\"primaryCategory\": \"Learning Resource\"},\"do_11303151546543308811\":{\"name\":\"prad PDF Content-1\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151571010355212\":{\"name\":\"prad PDF Content-2\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151584773734413\":{\"name\":\"prad PDF Content-3\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151594263347214\":{\"name\":\"prad PDF Content-4\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151604402585615\":{\"name\":\"prad PDF Content-5\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151612719104016\":{\"name\":\"prad PDF Content-6\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151623148339217\":{\"name\":\"prad PDF Content-7\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151631740928018\":{\"name\":\"prad PDF Content-8\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_11303151638961356819\":{\"name\":\"prad PDF Content-9\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516469411840110\":{\"name\":\"prad PDF Content-10\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516541870080111\":{\"name\":\"prad PDF Content-11\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516616491008112\":{\"name\":\"prad PDF Content-12\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516693184512113\":{\"name\":\"prad PDF Content-13\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516791406592114\":{\"name\":\"prad PDF Content-14\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516862660608115\":{\"name\":\"prad PDF Content-15\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031516945334272116\":{\"name\":\"prad PDF Content-16\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031517024190464117\":{\"name\":\"prad PDF Content-17\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031517104939008118\":{\"name\":\"prad PDF Content-18\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031517200171008119\":{\"name\":\"prad PDF Content-19\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false},\"do_113031517276520448120\":{\"name\":\"prad PDF Content-20\",\"contentType\":\"Resource\",\"primaryCategory\": \"Learning Resource\",\"children\":[],\"root\":false}}";
@@ -414,6 +440,35 @@ class TestUpdateHierarchy extends BaseSpec {
             "          ]\n" +
             "        }\n" +
             "      }"
+        JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
+    }
+
+    def getNodesModified_TOC_UPLOAD_STYLE(): util.HashMap[String, AnyRef] = {
+        val nodesModifiedString: String = "{" +
+            "\"do_112971262874558464179\": {\n" +
+            "                    \"root\": false,\n" +
+            "                    \"isNew\": true,\n" +
+            "                    \"metadata\": {\n" +
+            "                        \"attributions\": [\n" +
+            "                            \"mk\"\n" +
+            "                        ],\n" +
+            "                        \"name\": \"Test update hierarchy-30918948914\",\n" +
+            "                        \"contentType\": \"TextBookUnit\",\n" +
+            "                        \"mimeType\": \"application/vnd.ekstep.content-collection\",\n" +
+            "                        \"versionKey\": \"1583406182466\"\n" +
+            "                    }\n" +
+            "                },\n" +
+            "                \"do_11294581887465881611\": {\n" +
+            "                    \"isNew\": false,\n" +
+            "                    \"root\": true,\n" +
+            "                    \"metadata\": {}\n" +
+            "                }" +
+            "}"
+        JsonUtils.deserialize(nodesModifiedString, classOf[util.HashMap[String, AnyRef]])
+    }
+
+    def getHierarchy_Null(): util.HashMap[String, AnyRef] = {
+        val hierarchyString: String = "{}"
         JsonUtils.deserialize(hierarchyString, classOf[util.HashMap[String, AnyRef]])
     }
 

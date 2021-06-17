@@ -571,5 +571,6 @@
       ],
       "default": "No"
     }
-  }
+  },
+  "additionalProperties": false
 }

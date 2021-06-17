@@ -140,10 +140,8 @@ class TestLicenseActor extends BaseSpec with MockFactory {
     node.setObjectType("License")
     node.setMetadata(new util.HashMap[String, AnyRef]() {
       {
-        put("objectType", "License")
         put("status", "Live")
         put("name", "do_1234")
-        put("versionKey", "1878141")
       }
     })
     node

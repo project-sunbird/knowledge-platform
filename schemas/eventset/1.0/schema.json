@@ -21,6 +21,9 @@
         "code": {
             "type": "string"
         },
+        "versionKey": {
+            "type": "string"
+        },
         "primaryCategory": {
             "type": "string"
         },
@@ -244,5 +247,6 @@
         "depth": {
             "type": "number"
         }
-    }
+    },
+    "additionalProperties": false
 }

@@ -539,5 +539,6 @@
     "variants": {
       "type": "object"
     }
-  }
+  },
+  "additionalProperties": false
 }

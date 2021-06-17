@@ -59,7 +59,8 @@
          "index": {
            "type": "number"
          }
-       }
+       },
+      "additionalProperties": false
      }
 
 

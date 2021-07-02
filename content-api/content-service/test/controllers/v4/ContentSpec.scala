@@ -55,6 +55,13 @@ class ContentSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
 
+        "return success response for rejectFlag API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val result = controller.rejectFlag("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
         "return success response for discard API" in {
             val controller = app.injector.instanceOf[controllers.v4.ContentController]
             val result = controller.discard("0123")(FakeRequest())
@@ -78,6 +85,15 @@ class ContentSpec extends BaseSpec {
         "return success response for presignedUrl upload API" in {
             val controller = app.injector.instanceOf[controllers.v4.ContentController]
             val result = controller.uploadPreSigned("01234", None)(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
+
+        "return success response for rejectContent API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val json: JsValue = Json.parse("""{"request": {"content": {"primaryCategory": "Learning Resource","status": "Review"}}}""")
+            val fakeRequest = FakeRequest("POST", "/content/v4/review/reject/do_123").withJsonBody(json)
+            val result = controller.systemUpdate("do_123")(fakeRequest)
             isOK(result)
             status(result) must equalTo(OK)
         }

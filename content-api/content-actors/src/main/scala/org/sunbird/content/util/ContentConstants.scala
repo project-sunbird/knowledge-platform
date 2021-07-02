@@ -56,4 +56,6 @@ object ContentConstants {
     val LAST_UPDATED_ON:String = "lastUpdatedOn"
     val VERSION:String = "version"
     val COPY_SCHEME:String = "copyScheme"
+    val LIVE: String = "Live"
+    val VALID_FLAG_OBJECT_TYPES = List("Content", "Collection", "Asset")
 }

@@ -92,9 +92,11 @@ POST      /content/v4/dialcode/link                controllers.v4.ContentControl
 POST      /content/v4/import                       controllers.v4.ContentController.importContent()
 POST      /content/v4/flag/:identifier             controllers.v4.ContentController.flag(identifier:String)
 POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentController.acceptFlag(identifier:String)
+POST      /content/v4/flag/reject/:identifier      controllers.v4.ContentController.rejectFlag(identifier:String)
 DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
 DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
 PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentController.systemUpdate(identifier:String)
+POST      /content/v4/review/reject/:identifier    controllers.v4.ContentController.rejectContent(identifier:String)
 
 # App v4 APIs
 POST      /app/v4/register                          controllers.v4.AppController.register

@@ -3,14 +3,13 @@ package org.sunbird.content.actors
 import java.util
 import java.util.concurrent.CompletionException
 import java.io.File
-
 import org.apache.commons.io.FilenameUtils
 import javax.inject.Inject
 import org.apache.commons.lang3.StringUtils
 import org.sunbird.`object`.importer.{ImportConfig, ImportManager}
 import org.sunbird.actor.core.BaseActor
 import org.sunbird.cache.impl.RedisCache
-import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RetireManager}
+import org.sunbird.content.util.{AcceptFlagManager, ContentConstants, CopyManager, DiscardManager, FlagManager, RejectFlagManager, RetireManager}
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
@@ -47,9 +46,11 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "discardContent" => discard(request)
 			case "flagContent" => flag(request)
 			case "acceptFlag" => acceptFlag(request)
+			case "rejectFlag"	=> rejectFlag(request)
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
+			case "rejectContent" => rejectContent(request)
 			case _ => ERROR(request.getOperation)
 		}
 	}
@@ -140,6 +141,10 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 
 	def acceptFlag(request: Request): Future[Response] = {
 		AcceptFlagManager.acceptFlag(request)
+	}
+
+	def rejectFlag(request: Request): Future[Response] = {
+		RejectFlagManager.rejectFlag(request)
 	}
 
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
@@ -233,6 +238,34 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			response.put("status", "success")
 			response
 		})
+	}
+
+	def rejectContent(request: Request): Future[Response] = {
+		RequestUtil.validateRequest(request)
+		DataNode.read(request).map(node => {
+			val status = node.getMetadata.get("status").asInstanceOf[String]
+			//val reviewStatus = List("InReview", "Reviewed")
+			if (StringUtils.isBlank(status))
+				throw new ClientException("ERR_METADATA_ISSUE", "Content metadata error, status is blank for identifier:" + node.getIdentifier)
+			//if (!reviewStatus.contains(status))
+			//	throw new ClientException("ERR_CONTENT_NOT_IN_REVIEW", "Content is not in review state for identifier: " + node.getIdentifier)
+			if (StringUtils.equalsIgnoreCase(status,"FlagReview"))
+				request.getRequest.put("status", "FlagDraft")
+			else
+				request.getRequest.put("status","Draft")
+			request.getRequest.put("versionKey", node.getMetadata.get("versionKey"))
+			if (null != request.getRequest.get("rejectReasons") && !request.getRequest.get("rejectReasons").isInstanceOf[Array[_]])
+				throw new ClientException("ERR_INVALID_REQUEST_FORMAT","rejectReasons should be a Array")
+			request.getRequest.put("publishChecklist", null)
+			request.getRequest.put("publishComment", null)
+      //updating node after changing the status
+			populateDefaultersForUpdation(request)
+			RequestUtil.restrictProperties(request)
+			DataNode.update(request).map(node => {
+				val identifier: String = node.getIdentifier.replace(".img", "")
+				ResponseHandler.OK.put("node_id", identifier).put("identifier", identifier)
+			})
+		}).flatMap(f => f)
 	}
 
 }

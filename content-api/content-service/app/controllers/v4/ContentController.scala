@@ -90,6 +90,17 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.ACCEPT_FLAG, contentActor, acceptRequest)
     }
 
+    def rejectFlag(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier).asJava)
+        val rejectRequest = getRequest(content, headers, "rejectFlag")
+        setRequestContext(rejectRequest, version, objectType, schemaName)
+        rejectRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.REJECT_FLAG, contentActor, rejectRequest)
+    }
 
     def discard(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
@@ -172,6 +183,18 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         setRequestContext(contentRequest, version, objectType, schemaName)
         contentRequest.getContext.put("identifier", identifier);
         getResult(ApiId.SYSTEM_UPDATE_CONTENT, contentActor, contentRequest, version = apiVersion)
+    }
+
+    def rejectContent(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body
+        content.putAll(headers)
+        content.putAll(Map("identifier" -> identifier).asJava)
+        val contentRequest = getRequest(content, headers, "rejectContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.REJECT_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
 }

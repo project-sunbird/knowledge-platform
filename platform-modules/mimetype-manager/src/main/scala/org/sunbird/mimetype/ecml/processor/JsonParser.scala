@@ -58,7 +58,7 @@ object JsonParser {
 
     def getManifest(jsonObject: Map[String, AnyRef], validateMedia: Boolean): Manifest = {
         if(null != jsonObject && jsonObject.keySet.contains("manifest") && jsonObject.get("manifest").get.isInstanceOf[List[Map[String, AnyRef]]]) throw new ClientException("EXPECTED_JSON_OBJECT", "Error! JSON Object is Expected for the Element. manifest")
-        else if(jsonObject.get("manifest").isInstanceOf[Map[String, AnyRef]] && jsonObject.get("manifest").asInstanceOf[Map[String, AnyRef]].keySet.contains("media")){
+        else if(jsonObject.get("manifest").isDefined && jsonObject.get("manifest").get.isInstanceOf[Map[String, AnyRef]] && jsonObject.get("manifest").get.asInstanceOf[Map[String, AnyRef]].keySet.contains("media")){
             val manifestObject = jsonObject.get("manifest").get.asInstanceOf[Map[String, AnyRef]]
             Manifest(getId(manifestObject), getData(manifestObject, "manifest"), getInnerText(manifestObject), getCdata(manifestObject), getMedias(manifestObject.get("media").get, validateMedia))
         }else classOf[Manifest].newInstance()
@@ -125,18 +125,22 @@ object JsonParser {
     }
 
     def getMedia(mediaJson: Map[String, AnyRef], validateMedia: Boolean): Media = {
-        if(null != mediaJson) {
+        if(null != mediaJson && validateMedia) {
             val id = getDatafromJsonObject(mediaJson, "id")
             val src = getDatafromJsonObject(mediaJson, "src")
             val `type` = getDatafromJsonObject(mediaJson, "type")
-            if(StringUtils.isBlank(id))
+            if(StringUtils.isBlank(id) && isMediaIdRequired(`type`))
                 throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('id' is required.)")
-            if(!(StringUtils.isNotBlank(`type`) &&(`type`.equalsIgnoreCase("js") || `type`.equalsIgnoreCase("css"))))
+            if(StringUtils.isBlank(`type`))
                 throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('type' is required.)")
             if(StringUtils.isBlank(src))
                 throw new ClientException("INVALID_MEDIA", "Error! Invalid Media ('src' is required.)")
             Media(id, getData(mediaJson, "media"), getInnerText(mediaJson), getCdata(mediaJson), src, `type`, getChildrenPlugin(mediaJson))
         } else classOf[Media].newInstance()
+    }
+
+    def isMediaIdRequired(`type`: String): Boolean = {
+        if(StringUtils.isNotBlank(`type`) &&(`type`.equalsIgnoreCase("js") || `type`.equalsIgnoreCase("css"))) false else true
     }
 
 

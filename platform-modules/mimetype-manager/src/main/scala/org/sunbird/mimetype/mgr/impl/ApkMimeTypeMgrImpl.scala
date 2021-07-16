@@ -4,6 +4,8 @@ import java.io.File
 
 import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
+import org.sunbird.common.exception.ClientException
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
 
@@ -26,4 +28,10 @@ class ApkMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManage
 			Map[String, AnyRef]("identifier" -> objectId, "artifactUrl" -> fileUrl, "downloadUrl" -> fileUrl, "size" -> getFileSize(file).asInstanceOf[AnyRef])
 		}
 	}
+
+	override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		validate(node, " |[APK file should be uploaded for further processing!]")
+		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+	}
+
 }

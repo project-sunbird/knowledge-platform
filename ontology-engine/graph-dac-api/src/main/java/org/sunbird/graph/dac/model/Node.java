@@ -169,4 +169,8 @@ public class Node implements Serializable {
         return relationNodes.get(identifier);
     }
 
+    public String getArtifactUrl() {
+        return (String) this.metadata.getOrDefault("artifactUrl", "");
+    }
+
 }

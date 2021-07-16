@@ -95,6 +95,7 @@ POST      /content/v4/flag/accept/:identifier      controllers.v4.ContentControl
 DELETE    /content/v4/discard/:identifier          controllers.v4.ContentController.discard(identifier:String)
 DELETE    /content/v4/retire/:identifier           controllers.v4.ContentController.retire(identifier:String)
 PATCH     /content/v4/system/update/:identifier    controllers.v4.ContentController.systemUpdate(identifier:String)
+POST      /content/v4/review/:identifier           controllers.v4.ContentController.review(identifier:String)
 POST      /content/v4/review/reject/:identifier    controllers.v4.ContentController.reviewReject(identifier:String)
 
 # App v4 APIs
@@ -123,6 +124,7 @@ DELETE  /private/eventset/v4/retire/:identifier  controllers.v4.EventSetControll
 GET     /object/v4/read/:identifier              controllers.v4.ObjectController.read(identifier:String, fields:Option[String])
 
 
-# Collection TOC CSV APIs
-POST    /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
+# Collection V4 APIs
+POST   /collection/v4/import/:collectionId           controllers.v4.CollectionController.importCollection(collectionId:String)
 GET    /collection/v4/export/:collectionId          controllers.v4.CollectionController.exportCollection(collectionId:String, fileType:Option[String])
+POST   /collection/v4/review/:identifier            controllers.v4.CollectionController.review(identifier:String)

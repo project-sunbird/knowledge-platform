@@ -8,6 +8,7 @@ import org.sunbird.models.UploadParams
 import org.sunbird.common.JsonUtils
 import org.sunbird.common.exception.ClientException
 import org.sunbird.cloudstore.StorageService
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.graph.utils.ScalaJsonUtils
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
@@ -57,5 +58,11 @@ class PluginMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeMan
 			}
 			Map[String, AnyRef]("semanticVersion" -> version, "targets" -> targetList)
 		}else Map[String, AnyRef]()
+	}
+
+	override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		if(!isValidArtifact(node))
+			throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either artifactUrl is missing or invalid!]")
+		Future(getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
 	}
 }

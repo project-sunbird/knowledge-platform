@@ -11,7 +11,7 @@ import org.apache.commons.validator.routines.UrlValidator
 import org.apache.tika.Tika
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.exception.{ClientException, ServerException}
-import org.sunbird.common.{HttpUtil, Platform, Slug}
+import org.sunbird.common.{DateUtils, HttpUtil, Platform, Slug}
 import org.sunbird.graph.dac.model.Node
 import org.sunbird.telemetry.logger.TelemetryManager
 
@@ -40,6 +40,7 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 	val IDX_S3_URL = 1
 
 	protected val UPLOAD_DENIED_ERR_MSG = "FILE_UPLOAD_ERROR | Upload operation not supported for given mimeType"
+	protected val MISSING_REQUIRED_FIELDS = "Error! Missing One or More Required Fields in Object."
 	val COMPOSED_H5P_ZIP: String = "composed-h5p-zip"
 	val mimeTypesToValidate: List[String] = if (Platform.config.hasPath("validation.strictMimeType")) Platform.config.getStringList("validation.strictMimeType").asScala.toList else List("image/svg+xml")
 
@@ -266,6 +267,24 @@ class BaseMimeTypeManager(implicit ss: StorageService) {
 		} catch {
 			case e: IOException => TelemetryManager.error("Error! Something Went Wrong While Creating the ZIP File: " + e.getMessage, e)
 		} finally if (zos != null) zos.close()
+	}
+
+	def isValidArtifact(node: Node): Boolean = {
+		StringUtils.isNotBlank(node.getArtifactUrl)
+	}
+
+	def isValidUrl(url: String): Boolean = {
+		validator.isValid(url)
+	}
+
+	def validate(node: Node, errorMsg: String): Unit = {
+		if(!isValidArtifact(node) && !isValidUrl(node.getArtifactUrl))
+			throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + errorMsg)
+	}
+
+	def getEnrichedMetadata(status: String): Map[String, AnyRef] = {
+		val newStatus = if(List("FlagDraft", "FlagReview").contains(status)) "FlagReview" else "Review"
+		Map("lastSubmittedOn"-> DateUtils.formatCurrentDate("yyyy-MM-dd'T'HH:mm:ss'Z'XXX"), "reviewError" -> null, "status" -> newStatus)
 	}
 
 }

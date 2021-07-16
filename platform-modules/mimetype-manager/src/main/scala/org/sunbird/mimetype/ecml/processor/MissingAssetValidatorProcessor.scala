@@ -16,7 +16,7 @@ trait MissingAssetValidatorProcessor extends IProcessor {
         if(null != media.data && !media.data.isEmpty){
             val plugin = media.data.get("plugin")
             val ver = media.data.get("version")
-            if((null != plugin && !plugin.toString.isEmpty) && (null != ver && !ver.toString.isEmpty))
+            if((null != plugin && plugin.isDefined && plugin.toString.nonEmpty) && (null != ver && ver.isDefined && ver.toString.nonEmpty))
                 media.id + "_" + plugin+ "_" + ver
             else media.id
         }else media.id

@@ -19,6 +19,7 @@ object ApiId {
 	val LINK_DIAL_CONTENT = "api.content.dialcode.link"
 	val IMPORT_CONTENT = "api.content.import"
 	val SYSTEM_UPDATE_CONTENT = "api.content.system.update"
+	val REVIEW_CONTENT = "api.content.review"
 	val REJECT_CONTENT = "api.content.review.reject"
 
 	// Collection APIs

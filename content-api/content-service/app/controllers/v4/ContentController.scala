@@ -174,6 +174,17 @@ class ContentController @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentActor:
         getResult(ApiId.SYSTEM_UPDATE_CONTENT, contentActor, contentRequest, version = apiVersion)
     }
 
+    def review(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "reviewContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.REVIEW_CONTENT, contentActor, contentRequest)
+    }
+
     def reviewReject(identifier: String) = Action.async { implicit request =>
         val headers = commonHeaders()
         val body = requestBody()

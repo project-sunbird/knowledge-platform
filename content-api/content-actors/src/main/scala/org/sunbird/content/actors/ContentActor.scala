@@ -15,6 +15,7 @@ import org.sunbird.common.{ContentParams, Platform, Slug}
 import org.sunbird.common.dto.{Request, Response, ResponseHandler}
 import org.sunbird.common.exception.ClientException
 import org.sunbird.content.dial.DIALManager
+import org.sunbird.content.review.mgr.ReviewManager
 import org.sunbird.util.RequestUtil
 import org.sunbird.content.upload.mgr.UploadManager
 import org.sunbird.graph.OntologyEngineContext
@@ -49,6 +50,7 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 			case "linkDIALCode" => linkDIALCode(request)
 			case "importContent" => importContent(request)
 			case "systemUpdate" => systemUpdate(request)
+			case "reviewContent" => reviewContent(request)
 			case "rejectContent" => rejectContent(request)
 			case _ => ERROR(request.getOperation)
 		}
@@ -145,6 +147,20 @@ class ContentActor @Inject() (implicit oec: OntologyEngineContext, ss: StorageSe
 	def linkDIALCode(request: Request): Future[Response] = DIALManager.link(request)
 
 	def importContent(request: Request): Future[Response] = importMgr.importObject(request)
+
+	def reviewContent(request: Request): Future[Response] = {
+		val identifier: String = request.getContext.getOrDefault("identifier", "").asInstanceOf[String]
+		val readReq = new Request(request)
+		readReq.put("identifier", identifier)
+		readReq.put("mode", "edit")
+		DataNode.read(readReq).map(node => {
+			if (null != node & StringUtils.isNotBlank(node.getObjectType))
+				request.getContext.put("schemaName", node.getObjectType.toLowerCase())
+			if (StringUtils.equalsAnyIgnoreCase("Processing", node.getMetadata.getOrDefault("status", "").asInstanceOf[String]))
+				throw new ClientException("ERR_NODE_ACCESS_DENIED", "Review Operation Can't Be Applied On Node Under Processing State")
+			else ReviewManager.review(request, node)
+		}).flatMap(f => f)
+	}
 
 	def populateDefaultersForCreation(request: Request) = {
 		setDefaultsBasedOnMimeType(request, ContentParams.create.name)

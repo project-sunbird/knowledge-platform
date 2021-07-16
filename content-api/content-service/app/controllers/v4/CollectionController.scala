@@ -232,4 +232,16 @@ class CollectionController  @Inject()(@Named(ActorNames.CONTENT_ACTOR) contentAc
         getResult(ApiId.EXPORT_CSV, collectionCSVActor, downloadRequest, version = apiVersion)
     }
 
+    def review(identifier: String) = Action.async { implicit request =>
+        val headers = commonHeaders()
+        val body = requestBody()
+        val content = body.getOrDefault("content", new java.util.HashMap()).asInstanceOf[java.util.Map[String, Object]];
+        content.putAll(headers)
+        val contentRequest = getRequest(content, headers, "reviewContent")
+        setRequestContext(contentRequest, version, objectType, schemaName)
+        contentRequest.getContext.put("identifier", identifier);
+        getResult(ApiId.REVIEW_CONTENT, contentActor, contentRequest)
+    }
+
+
 }

@@ -90,6 +90,13 @@ class ContentSpec extends BaseSpec {
             isOK(result)
             status(result) must equalTo(OK)
         }
+
+        "return success response for review API" in {
+            val controller = app.injector.instanceOf[controllers.v4.ContentController]
+            val result = controller.review("do_123")(FakeRequest())
+            isOK(result)
+            status(result) must equalTo(OK)
+        }
     }
     "return success response for upload API with file" in {
         val controller = app.injector.instanceOf[controllers.v4.ContentController]
@@ -171,4 +178,5 @@ class ContentSpec extends BaseSpec {
             status(result) must equalTo(OK)
         }
     }
+
 }

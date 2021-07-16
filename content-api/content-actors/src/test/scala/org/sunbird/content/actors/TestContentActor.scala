@@ -405,6 +405,69 @@ class TestContentActor extends BaseSpec with MockFactory {
         assert("success".equals(response.get("status")))
     }
 
+    it should "return success response for 'reviewContent' for document mimeType" in {
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        implicit val ss = mock[StorageService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        (graphDB.getNodeProperty(_: String, _: String, _: String)).expects(*, *, *).returns(Future(new Property("versionKey", new org.neo4j.driver.internal.value.StringValue("1234"))))
+        val nodes: util.List[Node] = getCategoryNode()
+        (graphDB.getNodeByUniqueIds(_: String, _: SearchCriteria)).expects(*, *).returns(Future(nodes)).anyNumberOfTimes()
+        (graphDB.upsertNode(_: String, _: Node, _: Request)).expects(*, *, *).returns(Future(node))
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.setOperation("reviewContent")
+        val response = callActor(request, Props(new ContentActor()))
+        println("result : "+response.getResult)
+        assert("successful".equals(response.getParams.getStatus))
+    }
+
+    it should "through client exception for review operation if node is under processing" in {
+        implicit val ss = mock[StorageService]
+        implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
+        val graphDB = mock[GraphService]
+        (oec.graphService _).expects().returns(graphDB).anyNumberOfTimes()
+        val node = getNodeForReview("do_123", "application/pdf", "LearningResource", "Content", "https://sunbirddev.blob.core.windows.net/sunbird-content-dev/content/do_11316726916397465612760/artifact/sample.pdf")
+        node.getMetadata.put("contentType", "Resource")
+        node.getMetadata.put("status", "Processing")
+        node.getMetadata.put("organisationBoardIds", new util.ArrayList[String](){{add("ncf_board_cbse")}})
+        (graphDB.getNodeByUniqueId(_: String, _: String, _: Boolean, _: Request)).expects(*, *, *, *).returns(Future(node)).anyNumberOfTimes()
+        (graphDB.readExternalProps(_: Request, _: List[String])).expects(*, *).returns(Future(new Response())).anyNumberOfTimes()
+        val request = getContentRequest()
+        request.getContext.put("identifier", "do_123")
+        request.setOperation("reviewContent")
+        val response = callActor(request, Props(new ContentActor()))
+        assert(response.getResponseCode == ResponseCode.CLIENT_ERROR)
+        assert(response.getParams.getErr == "ERR_NODE_ACCESS_DENIED")
+        assert(response.getParams.getErrmsg == "Review Operation Can't Be Applied On Node Under Processing State")
+    }
+
+    private def getNodeForReview(id: String, mimeType: String, primaryCategory: String, objType: String,  artifactUrl: String): Node = {
+        val node = new Node()
+        node.setIdentifier(id)
+        node.setNodeType("DATA_NODE")
+        node.setObjectType(objType)
+        node.setMetadata(new util.HashMap[String, AnyRef]() {
+            {
+                put("identifier", id)
+                put("mimeType", mimeType)
+                put("primaryCategory", primaryCategory)
+                put("name", "Test Data 1")
+                put("channel", "in.ekstep")
+                put("code", "test_data_1")
+                put("versionKey", "1234")
+                put("artifactUrl", artifactUrl)
+                put("framework" , "NCF")
+            }
+        })
+        node
+    }
+
     it should "return success response for 'rejectContent'" in {
         implicit val oec: OntologyEngineContext = mock[OntologyEngineContext]
         val graphDB = mock[GraphService]

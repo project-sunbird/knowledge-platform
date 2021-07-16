@@ -1,16 +1,24 @@
 package org.sunbird.mimetype.mgr.impl
 
-import java.io.File
+import java.io.{File, IOException, StringReader}
 
+import javax.xml.parsers.{DocumentBuilderFactory, ParserConfigurationException}
+import org.apache.commons.lang3.StringUtils
 import org.sunbird.models.UploadParams
 import org.sunbird.cloudstore.StorageService
 import org.sunbird.common.Platform
-import org.sunbird.common.exception.ClientException
+import org.sunbird.common.dto.{Request, ResponseHandler}
+import org.sunbird.common.exception.{ClientException, ServerException}
+import org.sunbird.graph.OntologyEngineContext
 import org.sunbird.graph.dac.model.Node
-import org.sunbird.mimetype.ecml.ECMLExtractor
+import org.sunbird.graph.utils.ScalaJsonUtils
+import org.sunbird.mimetype.ecml.{ECMLExtractor, ECMLProcessor}
 import org.sunbird.mimetype.ecml.processor.{JsonParser, Plugin, XmlParser}
 import org.sunbird.mimetype.mgr.{BaseMimeTypeManager, MimeTypeManager}
+import org.xml.sax.{InputSource, SAXException}
 
+import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.{ExecutionContext, Future}
 
 class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManager with MimeTypeManager {
@@ -90,4 +98,57 @@ class EcmlMimeTypeMgrImpl(implicit ss: StorageService) extends BaseMimeTypeManag
 		}
 	}
 
+	override def review(objectId: String, node: Node)(implicit ec: ExecutionContext, ontologyEngineContext: OntologyEngineContext): Future[Map[String, AnyRef]] = {
+		validate(node).map(result => {
+			if(result)
+				getEnrichedMetadata(node.getMetadata.getOrDefault("status", "").asInstanceOf[String])
+			else throw new ServerException("ERR_NODE_REVIEW", "Something Went Wrong While Applying Review On Node Having Identifier : "+objectId)
+		})
+	}
+
+	def validate(node: Node)(implicit ec: ExecutionContext, oec: OntologyEngineContext): Future[Boolean] = {
+		val artifactUrl = node.getMetadata.getOrDefault("artifactUrl", "").asInstanceOf[String]
+		val req = new Request()
+		req.setContext(Map[String, AnyRef]("schemaName" -> node.getObjectType.toLowerCase.replaceAll("image", ""), "version"->"1.0").asJava)
+		req.put("identifier", node.getIdentifier)
+		val responseFuture = oec.graphService.readExternalProps(req, List("body"))
+		responseFuture.map(response => {
+			if (!ResponseHandler.checkError(response)) {
+				val body = response.getResult.toMap.getOrDefault("body", "").asInstanceOf[String]
+				if(StringUtils.isBlank(artifactUrl) && StringUtils.isBlank(body))
+					throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either 'body' or 'artifactUrl' are required for processing of ECML content!")
+				if(StringUtils.isNotBlank(body)) {
+					val ecrf: Plugin = getEcrfObject(getBodyType(body), body)
+					val processedEcrf: Plugin = new ECMLProcessor(getBasePath(node.getIdentifier), node.getIdentifier).process(ecrf)
+					if(null!=processedEcrf) true else false
+				} else false
+			} else if (ResponseHandler.checkError(response) && StringUtils.isBlank(artifactUrl)) {
+				throw new ClientException("VALIDATOR_ERROR", MISSING_REQUIRED_FIELDS + " | [Either 'body' or 'artifactUrl' are required for processing of ECML content!")
+			} else true
+		})
+	}
+
+	def getBodyType(body: String):String = {
+		if(isValidJson(body)) "json" else if(isValidXml(body)) "ecml" else throw new ClientException("INVALID_CONTENT_BODY","Error! Invalid Content Body.")
+	}
+
+	def isValidXml(body: String): Boolean = {
+		try {
+			val dbFactory = DocumentBuilderFactory.newInstance
+			val dBuilder = dbFactory.newDocumentBuilder
+			dBuilder.parse(new InputSource(new StringReader(body)))
+			true
+		} catch {
+			case e@(_: ParserConfigurationException | _: SAXException | _: IOException) => false
+		}
+	}
+
+	def isValidJson(body: String): Boolean = {
+		try {
+			val json = ScalaJsonUtils.deserialize[Map[String, AnyRef]](body)
+			if (json.nonEmpty) true else false
+		} catch {
+			case e@(_: ParserConfigurationException | _: SAXException | _: IOException) => false
+		}
+	}
 }
